@@ -1,9 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { RecitationService } from '@tilawa/domain-recitation';
 import { EngagementService } from '@tilawa/domain-engagement';
 import { AuthService } from '@tilawa/domain-user';
 import { authMiddleware } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
+import { uploadAudio, handleUploadErrors } from '../../middleware/upload';
+import { uploadRateLimit, likeRateLimit } from '../../middleware/rate-limit';
 import { createRecitationSchema, uploadAudioSchema, getRecitationSchema } from './validation';
 
 export const createRecitationRoutes = (
@@ -40,22 +42,32 @@ export const createRecitationRoutes = (
     }
   });
 
-  // Upload audio
-  router.post('/:id/upload', validate(uploadAudioSchema), async (req, res, next) => {
+  // Upload audio with strict validation and rate limiting
+  router.post('/:id/upload', uploadRateLimit, uploadAudio, handleUploadErrors, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;
-      const { audioData } = req.body;
 
-      // In a real app, this would be multipart/form-data
-      // For now, we simulate with a buffer
-      const audioBuffer = Buffer.from(audioData || 'mock-audio-data');
+      // Vérifier qu'un fichier a été uploadé
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'NO_FILE_UPLOADED',
+            message: 'No audio file provided',
+          },
+        });
+      }
+
+      // Utiliser le buffer du fichier uploadé
+      const audioBuffer = req.file.buffer;
 
       const recitation = await recitationService.uploadAudio(id, userId, audioBuffer);
 
       res.json({
         success: true,
         data: recitation,
+        message: `Audio file uploaded successfully (${(req.file.size / 1024 / 1024).toFixed(2)} MB)`,
       });
     } catch (error) {
       next(error);
@@ -92,8 +104,8 @@ export const createRecitationRoutes = (
     }
   });
 
-  // Like a recitation
-  router.post('/:id/like', authMiddleware(authService), validate(getRecitationSchema), async (req, res, next) => {
+  // Like a recitation with rate limiting
+  router.post('/:id/like', likeRateLimit, authMiddleware(authService), validate(getRecitationSchema), async (req, res, next) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;
@@ -109,8 +121,8 @@ export const createRecitationRoutes = (
     }
   });
 
-  // Unlike a recitation
-  router.delete('/:id/like', authMiddleware(authService), validate(getRecitationSchema), async (req, res, next) => {
+  // Unlike a recitation with rate limiting
+  router.delete('/:id/like', likeRateLimit, authMiddleware(authService), validate(getRecitationSchema), async (req, res, next) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;

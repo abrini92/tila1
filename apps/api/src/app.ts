@@ -66,7 +66,7 @@ export const createApp = (deps: Dependencies) => {
   app.use('/api/v1/auth', authRateLimit, createAuthRoutes(deps.authService));
   app.use('/api/v1/recitations', createRecitationRoutes(deps.recitationService, deps.engagementService, deps.authService));
   app.use('/api/v1/reciters', createReciterRoutes(deps.reciterService, deps.authService));
-  app.use('/api/v1/feed', createFeedRoutes(deps.feedService));
+  app.use('/api/v1/feed', createFeedRoutes(deps.feedService, deps.cacheService));
 
   // 404 handler
   app.use((req: Request, res: Response) => {

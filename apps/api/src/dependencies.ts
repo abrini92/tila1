@@ -9,6 +9,7 @@ import { RecitationService } from '@tilawa/domain-recitation';
 import { ReciterService } from '@tilawa/domain-reciter';
 import { EngagementService } from '@tilawa/domain-engagement';
 import { FeedService } from '@tilawa/domain-feed';
+import { CacheService } from './services/CacheService';
 
 export const initializeDependencies = async () => {
   // Connect to database
@@ -26,6 +27,7 @@ export const initializeDependencies = async () => {
   const tokenService = new TokenService(env.jwt.secret, env.jwt.expiresIn);
   const storageService = new StorageService();
   const queueService = new QueueService(env.redis.url);
+  const cacheService = new CacheService(env.redis.url);
 
   // Domain services
   const authService = new AuthService(userRepository, passwordService, tokenService);
@@ -47,6 +49,7 @@ export const initializeDependencies = async () => {
     engagementService,
     feedService,
     queueService,
+    cacheService,
   };
 };
 
