@@ -7,6 +7,8 @@ import { env } from '@tilawa/config';
 import { Dependencies } from './dependencies';
 import { createAuthRoutes } from './modules/auth/auth.routes';
 import { createRecitationRoutes } from './modules/recitation/recitation.routes';
+import { globalRateLimit, authRateLimit } from './middleware/rate-limit';
+import { metricsMiddleware, register } from './middleware/metrics';
 
 export const createApp = (deps: Dependencies) => {
   const app = express();
@@ -14,6 +16,12 @@ export const createApp = (deps: Dependencies) => {
   // Security middleware
   app.use(helmet());
   app.use(cors());
+
+  // Rate limiting
+  app.use('/api', globalRateLimit);
+
+  // Metrics
+  app.use(metricsMiddleware);
 
   // Logging
   if (env.isDevelopment) {
@@ -34,6 +42,12 @@ export const createApp = (deps: Dependencies) => {
     });
   });
 
+  // Metrics endpoint
+  app.get('/metrics', async (req: Request, res: Response) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  });
+
   // API routes
   app.get('/api/v1', (req: Request, res: Response) => {
     res.json({
@@ -47,7 +61,7 @@ export const createApp = (deps: Dependencies) => {
   });
 
   // Mount routes
-  app.use('/api/v1/auth', createAuthRoutes(deps.authService));
+  app.use('/api/v1/auth', authRateLimit, createAuthRoutes(deps.authService));
   app.use('/api/v1/recitations', createRecitationRoutes(deps.recitationService, deps.authService));
 
   // 404 handler

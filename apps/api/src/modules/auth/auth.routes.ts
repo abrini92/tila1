@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { AuthService } from '@tilawa/domain-user';
 import { authMiddleware } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
+import { registerSchema, loginSchema } from './validation';
 
 export const createAuthRoutes = (authService: AuthService) => {
   const router = Router();
 
   // Register
-  router.post('/register', async (req, res, next) => {
+  router.post('/register', validate(registerSchema), async (req, res, next) => {
     try {
       const { email, password, name } = req.body;
       const result = await authService.register(email, password, name);
@@ -21,7 +23,7 @@ export const createAuthRoutes = (authService: AuthService) => {
   });
 
   // Login
-  router.post('/login', async (req, res, next) => {
+  router.post('/login', validate(loginSchema), async (req, res, next) => {
     try {
       const { email, password } = req.body;
       const result = await authService.login(email, password);

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { RecitationService } from '@tilawa/domain-recitation';
 import { AuthService } from '@tilawa/domain-user';
 import { authMiddleware } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
+import { createRecitationSchema, uploadAudioSchema, getRecitationSchema } from './validation';
 
 export const createRecitationRoutes = (
   recitationService: RecitationService,
@@ -13,7 +15,7 @@ export const createRecitationRoutes = (
   router.use(authMiddleware(authService));
 
   // Create draft recitation
-  router.post('/', async (req, res, next) => {
+  router.post('/', validate(createRecitationSchema), async (req, res, next) => {
     try {
       const { title, description, surah, verses, language } = req.body;
       const userId = req.user!.id;
@@ -37,7 +39,7 @@ export const createRecitationRoutes = (
   });
 
   // Upload audio
-  router.post('/:id/upload', async (req, res, next) => {
+  router.post('/:id/upload', validate(uploadAudioSchema), async (req, res, next) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;
@@ -59,7 +61,7 @@ export const createRecitationRoutes = (
   });
 
   // Get recitation by ID
-  router.get('/:id', async (req, res, next) => {
+  router.get('/:id', validate(getRecitationSchema), async (req, res, next) => {
     try {
       const { id } = req.params;
       const recitation = await recitationService.getRecitationById(id);
