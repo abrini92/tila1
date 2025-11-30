@@ -7,7 +7,7 @@ export enum LogLevel {
   ERROR = 'ERROR',
 }
 
-class Logger {
+export class Logger {
   private context: string;
 
   constructor(context: string) {
