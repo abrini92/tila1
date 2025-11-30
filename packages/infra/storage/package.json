@@ -1,0 +1,16 @@
+{
+  "name": "@tilawa/storage",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@tilawa/domain-recitation": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

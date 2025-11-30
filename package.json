@@ -1,0 +1,29 @@
+{
+  "name": "tilawa-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tilawa - Global Qur'an Recitation Platform Backend",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/domain/*",
+    "packages/infra/*",
+    "packages/shared/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:audio-worker": "npm run dev --workspace=apps/audio-worker",
+    "dev:moderation-worker": "npm run dev --workspace=apps/moderation-worker",
+    "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build --workspace=packages/shared/types && npm run build --workspace=packages/shared/utils && npm run build --workspace=packages/shared/config && npm run build --workspace=packages/domain/user && npm run build --workspace=packages/domain/recitation && npm run build --workspace=packages/infra/database && npm run build --workspace=packages/infra/auth && npm run build --workspace=packages/infra/storage && npm run build --workspace=packages/infra/queue",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules packages/*/*/node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

@@ -1,0 +1,230 @@
+// Tilawa Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER DOMAIN
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(USER)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  reciter      Reciter?
+  recitations  Recitation[]
+  likes        Like[]
+  comments     Comment[]
+  favorites    Favorite[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  RECITER
+  MODERATOR
+  ADMIN
+}
+
+// ============================================================================
+// RECITER DOMAIN
+// ============================================================================
+
+model Reciter {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio         String?
+  country     String?
+  verified    Boolean  @default(false)
+  
+  // Stats
+  totalRecitations Int @default(0)
+  totalLikes       Int @default(0)
+  totalFollowers   Int @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  badges      ReciterBadge[]
+  
+  @@map("reciters")
+}
+
+model ReciterBadge {
+  id         String   @id @default(cuid())
+  reciterId  String
+  reciter    Reciter  @relation(fields: [reciterId], references: [id], onDelete: Cascade)
+  
+  badgeType  BadgeType
+  awardedAt  DateTime  @default(now())
+  
+  @@map("reciter_badges")
+}
+
+enum BadgeType {
+  VERIFIED
+  POPULAR
+  RISING_STAR
+  MASTER_RECITER
+  KIDS_FRIENDLY
+}
+
+// ============================================================================
+// RECITATION DOMAIN
+// ============================================================================
+
+model Recitation {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  title       String
+  description String?
+  surah       String
+  verses      String           // e.g., "1-7" or "1,3,5"
+  language    String           @default("ar")
+  
+  // Audio
+  audioUrl    String?
+  duration    Int?             // in seconds
+  
+  // Status
+  status      RecitationStatus @default(DRAFT)
+  
+  // Timestamps
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  publishedAt DateTime?
+  
+  // Relations
+  audioAnalysis    AudioAnalysis?
+  moderationLog    ModerationLog?
+  likes            Like[]
+  comments         Comment[]
+  favorites        Favorite[]
+  
+  @@map("recitations")
+  @@index([userId])
+  @@index([status])
+  @@index([surah])
+}
+
+enum RecitationStatus {
+  DRAFT
+  UPLOADED
+  PROCESSING
+  PENDING_MODERATION
+  APPROVED
+  PUBLISHED
+  REJECTED
+  DELETED
+}
+
+// ============================================================================
+// AUDIO PROCESSING DOMAIN
+// ============================================================================
+
+model AudioAnalysis {
+  id            String     @id @default(cuid())
+  recitationId  String     @unique
+  recitation    Recitation @relation(fields: [recitationId], references: [id], onDelete: Cascade)
+  
+  // Analysis results
+  duration      Int        // in seconds
+  quality       String     // low, medium, high
+  deepfakeScore Float      // 0.0 to 1.0 (higher = more likely fake)
+  
+  // Metadata
+  analyzedAt    DateTime   @default(now())
+  
+  @@map("audio_analyses")
+}
+
+// ============================================================================
+// MODERATION DOMAIN
+// ============================================================================
+
+model ModerationLog {
+  id            String            @id @default(cuid())
+  recitationId  String            @unique
+  recitation    Recitation        @relation(fields: [recitationId], references: [id], onDelete: Cascade)
+  
+  decision      ModerationDecision
+  reason        String?
+  kidsSafe      Boolean           @default(false)
+  
+  moderatedAt   DateTime          @default(now())
+  
+  @@map("moderation_logs")
+}
+
+enum ModerationDecision {
+  APPROVED
+  REJECTED
+  FLAGGED
+  PENDING
+}
+
+// ============================================================================
+// ENGAGEMENT DOMAIN
+// ============================================================================
+
+model Like {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recitationId  String
+  recitation    Recitation @relation(fields: [recitationId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime   @default(now())
+  
+  @@unique([userId, recitationId])
+  @@map("likes")
+}
+
+model Comment {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recitationId  String
+  recitation    Recitation @relation(fields: [recitationId], references: [id], onDelete: Cascade)
+  
+  content       String
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@map("comments")
+  @@index([recitationId])
+}
+
+model Favorite {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recitationId  String
+  recitation    Recitation @relation(fields: [recitationId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime   @default(now())
+  
+  @@unique([userId, recitationId])
+  @@map("favorites")
+}
