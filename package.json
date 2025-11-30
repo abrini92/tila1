@@ -15,7 +15,7 @@
     "dev:audio-worker": "npm run dev --workspace=apps/audio-worker",
     "dev:moderation-worker": "npm run dev --workspace=apps/moderation-worker",
     "build": "npm run build --workspaces --if-present",
-    "build:packages": "npm run build --workspace=packages/shared/types && npm run build --workspace=packages/shared/utils && npm run build --workspace=packages/shared/config && npm run build --workspace=packages/domain/user && npm run build --workspace=packages/domain/recitation && npm run build --workspace=packages/infra/database && npm run build --workspace=packages/infra/auth && npm run build --workspace=packages/infra/storage && npm run build --workspace=packages/infra/queue",
+    "build:packages": "npm run build --workspace=packages/shared/types && npm run build --workspace=packages/shared/utils && npm run build --workspace=packages/shared/config && npm run build --workspace=packages/domain/user && npm run build --workspace=packages/domain/recitation && npm run build --workspace=packages/domain/reciter && npm run build --workspace=packages/domain/engagement && npm run build --workspace=packages/domain/feed && npm run build --workspace=packages/infra/database && npm run build --workspace=packages/infra/auth && npm run build --workspace=packages/infra/storage && npm run build --workspace=packages/infra/queue",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

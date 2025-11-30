@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { RecitationService } from '@tilawa/domain-recitation';
+import { EngagementService } from '@tilawa/domain-engagement';
 import { AuthService } from '@tilawa/domain-user';
 import { authMiddleware } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
@@ -7,6 +8,7 @@ import { createRecitationSchema, uploadAudioSchema, getRecitationSchema } from '
 
 export const createRecitationRoutes = (
   recitationService: RecitationService,
+  engagementService: EngagementService,
   authService: AuthService
 ) => {
   const router = Router();
@@ -84,6 +86,55 @@ export const createRecitationRoutes = (
       res.json({
         success: true,
         data: recitations,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Like a recitation
+  router.post('/:id/like', authMiddleware(authService), validate(getRecitationSchema), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      await engagementService.likeRecitation(userId, id);
+
+      res.json({
+        success: true,
+        message: 'Recitation liked successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Unlike a recitation
+  router.delete('/:id/like', authMiddleware(authService), validate(getRecitationSchema), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      await engagementService.unlikeRecitation(userId, id);
+
+      res.json({
+        success: true,
+        message: 'Recitation unliked successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get engagement stats (public)
+  router.get('/:id/engagement', validate(getRecitationSchema), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const stats = await engagementService.getEngagementStats(id);
+
+      res.json({
+        success: true,
+        data: stats,
       });
     } catch (error) {
       next(error);

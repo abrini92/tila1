@@ -1,11 +1,14 @@
 // Dependency injection container
 import { env } from '@tilawa/config';
-import { UserRepository, RecitationRepository, connectDatabase } from '@tilawa/database';
+import { UserRepository, RecitationRepository, ReciterRepository, EngagementRepository, FeedRepository, connectDatabase } from '@tilawa/database';
 import { PasswordService, TokenService } from '@tilawa/auth';
 import { StorageService } from '@tilawa/storage';
 import { QueueService } from '@tilawa/queue';
 import { AuthService, UserService } from '@tilawa/domain-user';
 import { RecitationService } from '@tilawa/domain-recitation';
+import { ReciterService } from '@tilawa/domain-reciter';
+import { EngagementService } from '@tilawa/domain-engagement';
+import { FeedService } from '@tilawa/domain-feed';
 
 export const initializeDependencies = async () => {
   // Connect to database
@@ -14,6 +17,9 @@ export const initializeDependencies = async () => {
   // Repositories
   const userRepository = new UserRepository();
   const recitationRepository = new RecitationRepository();
+  const reciterRepository = new ReciterRepository();
+  const engagementRepository = new EngagementRepository();
+  const feedRepository = new FeedRepository();
 
   // Infrastructure services
   const passwordService = new PasswordService();
@@ -29,11 +35,17 @@ export const initializeDependencies = async () => {
     storageService,
     queueService
   );
+  const reciterService = new ReciterService(reciterRepository);
+  const engagementService = new EngagementService(engagementRepository);
+  const feedService = new FeedService(feedRepository);
 
   return {
     authService,
     userService,
     recitationService,
+    reciterService,
+    engagementService,
+    feedService,
     queueService,
   };
 };

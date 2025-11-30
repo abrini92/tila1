@@ -7,6 +7,8 @@ import { env } from '@tilawa/config';
 import { Dependencies } from './dependencies';
 import { createAuthRoutes } from './modules/auth/auth.routes';
 import { createRecitationRoutes } from './modules/recitation/recitation.routes';
+import { createReciterRoutes } from './modules/reciter/reciter.routes';
+import { createFeedRoutes } from './modules/feed/feed.routes';
 import { globalRateLimit, authRateLimit } from './middleware/rate-limit';
 import { metricsMiddleware, register } from './middleware/metrics';
 
@@ -62,7 +64,9 @@ export const createApp = (deps: Dependencies) => {
 
   // Mount routes
   app.use('/api/v1/auth', authRateLimit, createAuthRoutes(deps.authService));
-  app.use('/api/v1/recitations', createRecitationRoutes(deps.recitationService, deps.authService));
+  app.use('/api/v1/recitations', createRecitationRoutes(deps.recitationService, deps.engagementService, deps.authService));
+  app.use('/api/v1/reciters', createReciterRoutes(deps.reciterService, deps.authService));
+  app.use('/api/v1/feed', createFeedRoutes(deps.feedService));
 
   // 404 handler
   app.use((req: Request, res: Response) => {

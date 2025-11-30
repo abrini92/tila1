@@ -49,7 +49,9 @@ model Reciter {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  displayName String
   bio         String?
+  avatarUrl   String?
   country     String?
   verified    Boolean  @default(false)
   
